@@ -1,0 +1,18 @@
+# Packmol input: polyester / HMMA 
+
+# Stoichiometry: 30 polyester : 12 HMMA 
+# Box: 50.0 x 50.0 x 50.0 Angstrom
+
+tolerance 2.0
+filetype xyz
+output system_polyester.xyz
+
+structure polyester_ipa_npg.xyz
+  number 30
+  inside box 0. 0. 0. 80.0 80.0 80.0
+end structure
+
+structure hmma.xyz
+  number 12
+  inside box 0. 0. 0. 80.0 80.0 80.0
+end structure
