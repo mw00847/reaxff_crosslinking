@@ -1,0 +1,147 @@
+# reaxff crosslinking simulation: DGEBF/DETDA epoxy-amine
+# pipeline: build_molecules.py -> packmol -> convert_to_lammps.py -> this script
+
+# system settings
+units           real
+atom_style      charge
+boundary        p p p
+
+# read the packed and converted system from packmol/ase pipeline
+read_data       system.data
+
+# atomic masses matching specorder in convert_to_lammps.py (C H O N)
+mass            1 12.011
+mass            2 1.008
+mass            3 15.999
+mass            4 14.007
+
+# reaxff force field - vashisth 2018 chno parameterisation
+pair_style      reaxff NULL safezone 1.6 mincap 100
+pair_coeff      * * ffield.reax.epoxy C H O N
+
+# charge equilibration - recalculates partial charges every step, mandatory for reaxff
+fix             qeq all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff
+
+# neighbour list settings
+neighbor        2.5 bin
+neigh_modify    every 5 delay 0 check yes
+
+# stage 1: energy minimisation
+# removes bad contacts from packmol packing before dynamics
+thermo          100
+thermo_style    custom step temp press density etotal pe ke
+
+minimize        1.0e-4 1.0e-6 1000 10000
+
+reset_timestep  0
+
+# stage 2: nvt equilibration at 300 k (5 ps)
+# thermalise the system before compression
+timestep        0.25
+
+velocity        all create 300.0 12345 mom yes rot yes dist gaussian
+
+fix             nvt_eq all nvt temp 300.0 300.0 100.0
+
+thermo          200
+thermo_style    custom step temp press density etotal pe ke
+
+dump            dump_eq all atom 500 equil.lammpstrj
+dump_modify     dump_eq sort id
+
+run             20000       # 5 ps
+
+unfix           nvt_eq
+undump          dump_eq
+
+# stage 3: npt compression at 300 k (50 ps)
+# packmol produces a low density box (~0.6 g/cc)
+# npt allows box to shrink to realistic density (~1.1 g/cc)
+fix             npt_compress all npt temp 300.0 300.0 100.0 &
+                iso 1.0 1.0 500.0
+
+thermo          500
+thermo_style    custom step temp press density etotal
+
+dump            dump_npt all atom 1000 compress.lammpstrj
+dump_modify     dump_npt sort id
+
+run             200000      # 50 ps
+
+unfix           npt_compress
+undump          dump_npt
+
+# stage 4: nvt cure ramp 300 k -> 500 k (50 ps)
+# elevated temperature provides energy to overcome reaction barrier
+# bond order snapshots written every 500 steps for crosslink tracking
+fix             nvt_cure all nvt temp 300.0 500.0 100.0
+
+fix             reaxff_bonds all reaxff/bonds 500 bonds.reaxff
+
+# species tracking - monitors molecular composition changes during cure
+fix             reaxff_species all reaxff/species 500 1 500 species.out &
+                element C H O N
+
+thermo          500
+thermo_style    custom step temp press density etotal pe
+
+dump            dump_cure all atom 1000 cure.lammpstrj
+dump_modify     dump_cure sort id
+
+run             200000      # 50 ps
+
+unfix           nvt_cure
+unfix           reaxff_bonds
+unfix           reaxff_species
+undump          dump_cure
+
+# stage 5: hold at 500 k (100 ps)
+# maintain elevated temperature to allow further crosslinking
+fix             nvt_hold all nvt temp 500.0 500.0 100.0
+fix             reaxff_bonds2 all reaxff/bonds 500 bonds_hold.reaxff
+
+thermo          500
+thermo_style    custom step temp press density etotal
+
+dump            dump_hold all atom 2000 hold.lammpstrj
+dump_modify     dump_hold sort id
+
+run             400000      # 100 ps
+
+unfix           nvt_hold
+unfix           reaxff_bonds2
+undump          dump_hold
+
+# stage 6: cool back to 300 k (25 ps)
+fix             nvt_cool all nvt temp 500.0 300.0 100.0
+
+thermo          500
+thermo_style    custom step temp press density etotal
+
+dump            dump_cool all atom 1000 cool.lammpstrj
+dump_modify     dump_cool sort id
+
+run             100000      # 25 ps
+
+unfix           nvt_cool
+undump          dump_cool
+
+# stage 7: final npt equilibration at 300 k (50 ps)
+# relax the cured network for property measurement
+fix             npt_final all npt temp 300.0 300.0 100.0 &
+                iso 1.0 1.0 500.0
+fix             reaxff_bonds_final all reaxff/bonds 1000 bonds_final.reaxff
+
+thermo          500
+thermo_style    custom step temp press density etotal pe
+
+dump            dump_final all atom 2000 final.lammpstrj
+dump_modify     dump_final sort id
+
+run             200000      # 50 ps
+
+# write final cured structure for downstream property calculations
+write_data      system_cured.data
+write_restart   restart.cured
+
+print "simulation complete. analyse bonds_final.reaxff for crosslink conversion"

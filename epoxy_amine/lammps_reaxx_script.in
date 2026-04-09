@@ -1,0 +1,44 @@
+# reaxff_epoxy.in  — NVT cure simulation
+
+units           real
+atom_style      charge
+boundary        p p p
+
+read_data       system.data
+
+pair_style      reaxff NULL safezone 1.6 mincap 100
+pair_coeff      * * ffield.reax.epoxy C H O N
+
+fix             qeq all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff
+
+neighbor        2.5 bin
+neigh_modify    every 5 delay 0 check yes
+
+# --- Minimise first ---
+minimize        1e-4 1e-6 1000 10000
+
+# --- Equilibrate at 300 K ---
+velocity        all create 300.0 12345 mom yes rot yes
+fix             nvt_eq all nvt temp 300.0 300.0 100.0
+thermo          100
+thermo_style    custom step temp press density etotal
+timestep        0.25   # fs — conservative for ReaxFF
+
+dump            traj_eq all atom 500 equil.lammpstrj
+run             20000   # 5 ps equilibration
+unfix           nvt_eq
+undump          traj_eq
+
+# --- Cure ramp: heat to 500 K to accelerate crosslinking ---
+fix             nvt_cure all nvt temp 300.0 500.0 100.0
+dump            traj_cure all atom 1000 cure.lammpstrj
+
+# Bond order output for crosslink tracking
+fix             reaxff_bonds all reaxff/bonds 500 bonds.reaxff
+
+run             200000  # 50 ps cure ramp
+
+# --- Cool back to 300 K ---
+unfix           nvt_cure
+fix             nvt_cool all nvt temp 500.0 300.0 100.0
+run             40000

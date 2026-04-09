@@ -1,0 +1,18 @@
+# packmol input script 
+
+
+
+
+tolerance 2.0
+filetype xyz
+output system.xyz
+
+structure dgebf.xyz
+  number 50
+  inside box 0. 0. 0. 40. 40. 40.
+end structure
+
+structure detda.xyz
+  number 25
+  inside box 0. 0. 0. 40. 40. 40.
+end structure
