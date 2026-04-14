@@ -1,4 +1,4 @@
-# reaxff-crosslinking
+# reaxff crosslinking
 
 This work shows an open source end to end demonstration of generating crosslinked polymer networks using Molecular Dynamics with ReaxFF in Lammps, applicable to industrally relevant coating and thermoset polymer systems.
 
