@@ -1,43 +1,40 @@
 # reaxff-crosslinking
 
-reactive molecular dynamics simulations of thermoset polymer crosslinking using ReaxFF in LAMMPS. an end-to-end open-source workflow for generating realistic crosslinked network structures from first principles, built as a demonstration of computational materials science applied to industrially relevant coating and structural polymer systems.
+This work shows an open source end to end demonstration of generating crosslinked polymer networks using Molecular Dynamics with ReaxFF in Lammps, applicable to industrally relevant coating and thermoset polymer systems.
 
 ## overview
 
-thermoset polymers form irreversible covalent networks during cure. standard molecular dynamics uses fixed bond topologies and cannot capture the bond formation and breaking that defines crosslinking. this project uses the ReaxFF reactive force field, which describes bonding through continuous bond order functions rather than fixed connectivity, allowing crosslinking to emerge naturally from the interatomic potential without artificial bond insertion algorithms.
+Thermoset polymers resins form irreversible covalent crosslinked networks during the curing process. Standard Molecular Dynamics uses fixed bond topologies and cannot capture the bond formation and breaking process that defines crosslinking. This project uses the ReaxFF reactive force field, which replaces fixed bond topology with continuous bond order functions. Crosslink bonds form and break based on interatomic distances, meaning the curing chemistry is captured directly without algorithmic intervention.
 
-two systems are implemented:
+Two systems are investigated, 
 
-| system | resin | hardener/crosslinker | application |
-|--------|-------|----------------------|-------------|
-| DGEBF/DETDA | bisphenol F diglycidyl ether | diethyltoluenediamine | structural epoxy |
-| IPA-NPG polyester / HMMA | isophthalic acid / neopentyl glycol polyester | hexamethoxymethylmelamine | coil coating |
+system resin curing agent application DGEBF/DETDA bisphenol F diglycidyl ether (DGEBF) diethyl toluene diamine (DETDA)structural epoxy polyester/HMMA isophthalic acid / neopentyl glycol polyester hexamethoxymethylmelamine (HMMA) coil coating
 
-the DGEBF/DETDA system directly replicates the Vashisth et al. (2018) benchmark, providing a validated starting point. the polyester/HMMA system is a novel extension relevant to industrial coating applications where melamine crosslinkers are standard.
+The DGEBF/DETDA system directly replicates the Vashisth et al. (2018) work providing a validated starting point. The polyester/HMMA system is relevant extension to industrial polyester coating applications where melamine crosslinkers are standard. This system is directly connected to the author's PhD research on surface segregation in polyester/melamine coil coating systems (published in Progress in Organic Coatings, 2022), extending the work from coarse grained MARTINI simulations to reactive atomistic ReaxFF."
 
-## scientific background
+## Scientific background
 
-### the epoxide-amine reaction
+### The epoxide amine system
 
-in the DGEBF/DETDA system, the primary amine nitrogen in DETDA attacks the terminal carbon of the epoxide ring in DGEBF. the C-O bond in the strained three-membered ring breaks, a new C-N bond forms, and the oxygen accepts a proton from the N-H group to yield a hydroxyl group. each DETDA molecule carries two amine groups each with two N-H bonds, giving a theoretical functionality of 4 crosslinks per hardener molecule.
+In the DGEBF/DETDA system, the primary amine nitrogen in DETDA attacks the terminal carbon of the epoxide ring in DGEBF. the C-O bond in the strained three membered ring breaks, a new C-N bond forms and the oxygen accepts a proton from the N-H group to yield a hydroxyl group. Each DETDA molecule carries two amine groups each with two N-H bonds, giving a theoretical 4 crosslinks per hardener molecule.
 
-in ReaxFF this process emerges from the bond order potential — as N approaches the epoxide C, the C-N bond order rises continuously from 0 while the C-O bond order in the ring drops, with no algorithmic intervention required.
+In ReaxFF this process emerges from the bond order potential, as N approaches the epoxide C, the C-N bond order rises continuously from 0 while the C-O bond order in the ring drops.
 
-### the polyester-melamine reaction
+### The polyester melamine system
 
-in the polyester/HMMA system, hydroxyl end groups on the polyester react with the N-CH2-OCH3 groups on the HMMA melamine crosslinker via acid-catalysed transetherification. the methoxy group leaves as methanol (CH3OH) and a new C-O ether bond forms between the HMMA methylene carbon and the polyester oxygen. formation of methanol as a byproduct is tracked in the analysis as mechanistic confirmation that the correct reaction pathway is occurring.
+In the polyester/HMMA system, hydroxyl end groups on the polyester react with the N-CH2-OCH3 groups on the HMMA melamine crosslinker via acid catalysed transetherification. The methoxy group leaves as methanol CH3OH and a new C-O ether bond forms between the HMMA methylene carbon and the polyester oxygen. Formation of methanol as a byproduct is tracked in the analysis as the mechanistic confirmation.
 
-### why ReaxFF
+### Why ReaxFF
 
-classical force fields (OPLS-AA, COMPASS, PCFF) assign fixed bond topologies at the start of a simulation. simulating crosslinking with these fields requires artificial bond insertion algorithms that periodically search for reactive pairs within a cutoff radius and manually create bonds. ReaxFF eliminates this approximation at the cost of roughly 10-100x greater computational expense, and is most appropriate when reaction pathways, transition states, or the detailed energetics of network formation are of interest.
+As discussed classical force fields (OPLS-AA, COMPASS, PCFF) assign fixed bond topologies at the start of a simulation. Simulating crosslinking with these fields requires artificial bond insertion algorithms that periodically search for reactive pairs within a cutoff radius and manually create bonds. ReaxFF eliminates this approximation albeit with a greater computational expense.
 
-### force field
+### Force field
 
-the Vashisth et al. (2018) re-optimised CHNO parameter set is used throughout. this field was specifically validated against epoxide ring-opening reaction barriers and thermo-mechanical properties of DGEBF/DETDA, making it the most appropriate available parameter set for these systems. the field covers C, H, O, N and is directly applicable to both systems without reparameterisation.
+The Vashisth et al. (2018) re optimised CHNO parameter set is used throughout. This field was specifically validated against epoxide ring opening reaction barriers and thermomechanical properties of DGEBF/DETDA, making it the most appropriate available parameter set for these systems. The field covers C, H, O, N and is directly applicable to both systems without reparameterisation.
 
-## results
+## Results
 
-### DGEBF/DETDA epoxy-amine
+### DGEBF/DETDA epoxy amine
 
 50% crosslink conversion achieved in 55 ps during the cure ramp, plateauing as reactive sites become separated in the densifying network.
 
@@ -49,9 +46,9 @@ the Vashisth et al. (2018) re-optimised CHNO parameter set is used throughout. t
 | density | ~1.1 g/cm³ | 1.16 g/cm³ | Vashisth 2018 |
 | time to 50% conversion | 55 ps | - | - |
 
-### polyester/HMMA coil coating
+### Polyester/HMMA coil coating
 
-2.7% crosslink conversion observed, with 2 methanol molecules formed matching 2 crosslink events — mass balance confirmed. the low conversion reflects the high activation barrier of uncatalysed transetherification and the nanosecond simulation timescale.
+2.7% crosslink conversion observed, with 2 methanol molecules formed matching 2 crosslink events. The low conversion reflects the high activation barrier of **uncatalysed** transetherification and the nanosecond simulation timescale.
 
 ![polyester crosslinks](polyester_system/polyester_crosslinks.png)
 
@@ -61,15 +58,15 @@ the Vashisth et al. (2018) re-optimised CHNO parameter set is used throughout. t
 | methanol formed | 2 | matches crosslink count |
 | mass balance | 73/73 | confirmed |
 
-## limitations
+## Limitations
 
-the principal limitation of this approach is the timescale gap between MD simulation (nanoseconds) and real cure cycles (seconds to minutes). conversion plateaus as reactive sites become separated in the densifying network and thermal diffusion is insufficient to bring them together within the simulation window.
+The principal limitation of this approach is the timescale gap between MD simulation (nanoseconds) and real cure cycles (seconds to minutes). Conversion plateaus as reactive sites become distant to eachother in the network and thermal diffusion is insufficient to bring them together during the simulation window.
 
-Vashisth et al. address this using an accelerated ReaxFF method that applies biased forces to reactive site pairs within a defined distance window, achieving 85-95% conversion. this represents the most significant methodological extension of the current work.
+The work by Vashisth et al. addresses this by using an accelerated ReaxFF method that applies biased forces to reactive site pairs within a defined distance window allowing for 85-95% crosslinking conversion.
 
-for the polyester/HMMA system, the low conversion additionally reflects the absence of an acid catalyst. industrial cure of melamine-crosslinked coatings uses p-toluenesulfonic acid or dodecylbenzenesulfonic acid to lower the reaction barrier significantly.
+For the polyester/HMMA system, the low crosslinking conversion reflects the absence of an acid catalyst. For industrial coil coatings of melamine crosslinked coatings catalysts such as p-toluenesulfonic acid or dodecylbenzenesulfonic acid are required to lower the reaction barrier.
 
-## repository structure
+## Repository structure
 
 ```
 reaxff-crosslinking/
@@ -93,9 +90,9 @@ reaxff-crosslinking/
     └── ffield.reax.epoxy
 ```
 
-## workflow
+## Workflow
 
-### epoxy-amine system
+### Epoxy-amine system
 
 ```bash
 # pack simulation box
@@ -138,25 +135,23 @@ python polyester_analysis.py bonds.reaxff
 - Packmol: `conda install -c conda-forge packmol`
 - ASE: `pip install ase`
 
-GPU acceleration via the LAMMPS Kokkos package with CUDA is strongly recommended for ReaxFF simulations.
+GPU acceleration via the LAMMPS Kokkos package with CUDA is used for ReaxFF simulations.
 
 ## future work
 
-**increase crosslink conversion** — implement the Vashisth et al. accelerated ReaxFF method, applying biased forces to reactive site pairs to overcome the diffusion limitation and achieve >80% conversion.
+**increase crosslink conversion** implement the Vashisth et al. accelerated ReaxFF method, applying biased forces to reactive site pairs to overcome the diffusion limitation.
 
-**property validation** — use the cured network structures for downstream calculations: glass transition temperature (Tg) via NPT density-temperature ramp, Young's modulus via nonequilibrium MD box deformation, thermal conductivity via the Müller-Plathe reverse NEMD method.
+**property validation** use the cured network structures for downstream calculations: glass transition temperature (Tg) via NPT density-temperature ramp, Young's modulus via nonequilibrium MD box deformation, thermal conductivity via the Müller-Plathe reverse NEMD method.
 
-**explicit acid catalyst** — include p-toluenesulfonic acid in the polyester/HMMA simulation to lower the transetherification barrier and achieve meaningful conversion.
+**explicit acid catalyst** include p-toluenesulfonic acid catalyst in the polyester/HMMA simulation to lower the transetherification barrier.
 
-**multiscale CG→ReaxFF** — use MARTINI coarse-grained MD to equilibrate the system at microsecond timescales, then back-map to atomistic resolution before applying ReaxFF crosslinking. this gives realistic chain configurations and reactive site distributions without the artificial spatial homogeneity of Packmol packing. a natural extension given the author's PhD experience with OPLS-AA/MARTINI back-mapping for polyester coil coating systems.
+**multiscale CG→ReaxFF** use MARTINI coarse grained MD to equilibrate the system at microsecond timescales, then back map to atomistic resolution before applying ReaxFF crosslinking. This gives realistic chain configurations and reactive site distributions. 
 
-## references
+## References
 
 - Vashisth, A. et al. *Polymer* 2018, 158, 354-363
 - Provenzano, M. et al. *ACS Appl. Polym. Mater.* 2025, 7, 4876-4884
 - van Duin, A.C.T. et al. *J. Phys. Chem. A* 2001, 105, 9396-9409
 - Thompson, A.P. et al. *Comput. Phys. Commun.* 2022, 271, 108171
 
-## author
 
-computational materials scientist with PhD in materials science (University of Surrey, 2018-2022). research focus: polymer blend miscibility, coatings chemistry, multiscale molecular simulation. published work on polyester/melamine surface segregation in coil coating systems using OPLS-AA/MARTINI multiscale workflow.
