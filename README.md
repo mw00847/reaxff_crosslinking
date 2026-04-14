@@ -6,9 +6,12 @@ This work shows an open source end to end demonstration of generating crosslinke
 
 Thermoset polymers resins form irreversible covalent crosslinked networks during the curing process. Standard Molecular Dynamics uses fixed bond topologies and cannot capture the bond formation and breaking process that defines crosslinking. This project uses the ReaxFF reactive force field, which replaces fixed bond topology with continuous bond order functions. Crosslink bonds form and break based on interatomic distances, meaning the curing chemistry is captured directly without algorithmic intervention.
 
-Two systems are investigated, 
+Two systems are investigated
 
-system resin curing agent application DGEBF/DETDA bisphenol F diglycidyl ether (DGEBF) diethyl toluene diamine (DETDA)structural epoxy polyester/HMMA isophthalic acid / neopentyl glycol polyester hexamethoxymethylmelamine (HMMA) coil coating
+| system | resin | curing agent | application |
+|--------|-------|--------------|-------------|
+| DGEBF/DETDA | bisphenol F diglycidyl ether (DGEBF) | diethyltoluenediamine (DETDA) | structural epoxy |
+| polyester/HMMA | isophthalic acid / neopentyl glycol polyester | hexamethoxymethylmelamine (HMMA) | coil coating |
 
 The DGEBF/DETDA system directly replicates the Vashisth et al. (2018) work providing a validated starting point. The polyester/HMMA system is relevant to industrial polyester coating applications where melamine crosslinkers are standard. This system is directly connected to the author's PhD research on surface segregation in polyester/melamine coil coating systems (published in Progress in Organic Coatings, 2022), extending the work from coarse grained MARTINI simulations to reactive atomistic ReaxFF."
 
